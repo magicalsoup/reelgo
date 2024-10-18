@@ -1,14 +1,15 @@
 package main
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -19,7 +20,8 @@ func main_handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Server started")
 }
 
-func verify_req_signature(w http.ResponseWriter, r *http.Request) (error) {
+// middleware
+func verify_req_signature(w http.ResponseWriter, r *http.Request, buffer[] byte) error {
 	signature := r.Header.Get("x-hub-signature-256")
 	if signature == "" {
 		fmt.Println("Couldn't find x-hub-signature-256 in headers.")
@@ -27,11 +29,12 @@ func verify_req_signature(w http.ResponseWriter, r *http.Request) (error) {
 		elements := strings.Split(signature, "=")
 		signature_hash := elements[1]
 
-		h := sha256.New()
-		h.Write([]byte(os.Getenv("APP_SECRET")))
-		expected_hash := h.Sum(nil)
-		
-		if !reflect.DeepEqual(expected_hash, []byte(signature_hash)) {
+		h := hmac.New(sha256.New, []byte(os.Getenv("APP_SECRET")))
+		h.Write(buffer)
+
+		expected_hash := hex.EncodeToString(h.Sum(nil))
+
+		if expected_hash != signature_hash {
 			return errors.New("couldn't validate the request signature")
 		}
 	}
@@ -39,22 +42,22 @@ func verify_req_signature(w http.ResponseWriter, r *http.Request) (error) {
 }
 
 func webhook_handler(w http.ResponseWriter, r *http.Request) {
-	verify_payload := verify_req_signature(w, r)
-
-	if verify_payload != nil {
-		fmt.Println(verify_payload.Error())
-		return
-	}
-
 	if r.Method == http.MethodPost {
 		fmt.Println("recieved body")
-		body, err := io.ReadAll(r.Body)
 		
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			fmt.Println(err)
 		}
-		
 		r.Body.Close()
+
+		verify_payload := verify_req_signature(w, r, body)
+
+		if verify_payload != nil {
+			fmt.Println(verify_payload.Error())
+			return
+		}
+
 		fmt.Println(string(body))
 
 	} else if r.Method == http.MethodGet {
@@ -80,8 +83,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
+	
 	http.HandleFunc("/", main_handler)
 	http.HandleFunc("/webhooks", webhook_handler);
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
