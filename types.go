@@ -12,7 +12,7 @@ type Payload struct {
 	Url           string `json:"url"`
 	Title         string `json:"title"`
 	Sticker_id    int64  `json:"sticker_id"`
-	Reel_video_id int64  `json:"reel_video_id"`
+	Reel_video_id string `json:"reel_video_id"`
 }
 
 type Attachment struct {
@@ -52,4 +52,9 @@ type MessageEntry struct {
 	Id        string            `json:"id"`
 	Time      int64             `json:"time"`
 	Messaging []MessageMetaData `json:"messaging"`
+}
+
+type Attraction struct {
+	Name     string `json:"name"`
+	Location string `json:location"`
 }

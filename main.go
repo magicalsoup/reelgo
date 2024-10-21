@@ -17,12 +17,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func main_handler(w http.ResponseWriter, r *http.Request) {
+func mainHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Server started")
 }
 
 // middleware
-func verify_req_signature(w http.ResponseWriter, r *http.Request, buffer []byte) error {
+func verifyReqSignature(r *http.Request, buffer []byte) error {
 	signature := r.Header.Get("x-hub-signature-256")
 	if signature == "" {
 		fmt.Println("Couldn't find x-hub-signature-256 in headers.")
@@ -42,7 +42,7 @@ func verify_req_signature(w http.ResponseWriter, r *http.Request, buffer []byte)
 	return nil
 }
 
-func webhook_handler(w http.ResponseWriter, r *http.Request) {
+func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		fmt.Println("recieved body")
 
@@ -51,10 +51,10 @@ func webhook_handler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		
+
 		defer r.Body.Close()
 
-		verify_payload := verify_req_signature(w, r, body)
+		verify_payload := verifyReqSignature(r, body)
 
 		if verify_payload != nil {
 			http.Error(w, verify_payload.Error(), http.StatusBadRequest)
@@ -64,10 +64,28 @@ func webhook_handler(w http.ResponseWriter, r *http.Request) {
 		var reqBody MessageWebhookObject
 
 		if err := json.NewDecoder(bytes.NewReader(body)).Decode(&reqBody); err != nil {
-			http.Error(w, "could not parse json\n" + err.Error(), http.StatusBadRequest)
+			http.Error(w, "could not parse json\n"+err.Error(), http.StatusBadRequest)
 			return
 		}
 
+		reel_url := reqBody.Entry[0].Messaging[0].Message.Attachments[0].Payload.Url
+
+		fmt.Println(reel_url)
+
+		if reel_url == "" { // emptry url
+			http.Error(w, "could not get a reel_url from message"+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		attraction, err := TransformVideoData(reel_url)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		fmt.Println(attraction.Name + " " + attraction.Location)
+		w.WriteHeader(http.StatusOK)
+
+		// add the attraction to the database
 
 	} else if r.Method == http.MethodGet {
 		mode := r.URL.Query().Get("hub.mode")
@@ -93,8 +111,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	http.HandleFunc("/", main_handler)
-	http.HandleFunc("/webhooks", webhook_handler)
+	http.HandleFunc("/", mainHandler)
+	http.HandleFunc("/webhooks", webhookHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
