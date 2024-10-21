@@ -1,4 +1,4 @@
-package main
+package gcs
 
 import (
 	"context"
@@ -17,6 +17,12 @@ import (
 	"google.golang.org/api/option"
 )
 
+type Attraction struct {
+	Name     string `json:"name"`
+	Location string `json:"location"`
+}
+
+
 func TransformVideoData(url string) (Attraction, error) {
 	fileBytes, err := DownloadVideoFile(url)
 
@@ -30,6 +36,8 @@ func TransformVideoData(url string) (Attraction, error) {
 	if err != nil {
 		return attraction, fmt.Errorf("something went wrong when using gemini to analyze the video file %w", err)
 	}
+
+	// fmt.Println("extractedText: " + extractedText)
 
 	attraction, err = getAttractionFromText(extractedText)
 
@@ -55,10 +63,15 @@ func getAttractionFromText(extractedText string) (Attraction, error) {
 	defer client.Close()
 
 	model := client.GenerativeModel("gemini-1.5-flash")
-	prompt := "can you give me the name and location of the attraction from this passage, and can you format the answer to be in the form name | location" + extractedText
+	prompt := "can you give me the name and location of the attraction from this passage, ignore everything not related to the review, format the answer to be in the form name | location exactly" + extractedText
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
 		return attraction, err
+	}
+
+	fmt.Println("response:")
+	for _, cand := range resp.Candidates {
+		fmt.Println(cand.Content.Parts[0].(genai.Text))
 	}
 
 	result, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
@@ -68,6 +81,7 @@ func getAttractionFromText(extractedText string) (Attraction, error) {
 	}
 
 	resultStr := string(result)
+	fmt.Println("result str: " + resultStr)
 	pieces := strings.Split(resultStr, "|")
 
 	if !strings.Contains(resultStr, "|") || len(pieces) < 2 {
