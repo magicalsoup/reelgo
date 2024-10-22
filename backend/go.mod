@@ -1,4 +1,4 @@
-module github.com/magicalsoup/reelgo-backend
+module github.com/magicalsoup/reelgo
 
 go 1.23.1
 

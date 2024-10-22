@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/magicalsoup/reelgo-backend/src/gcs"
+	"github.com/magicalsoup/reelgo/src/gcs"
 )
 
 
