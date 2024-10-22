@@ -34,7 +34,7 @@ func run(ctx context.Context) error {
 
 	server := NewServer()
 	httpServer := &http.Server{
-		Addr: net.JoinHostPort("localhost", "8080"),
+		Addr: net.JoinHostPort(os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT")),
 		Handler: server,
 	}
 
@@ -46,7 +46,7 @@ func run(ctx context.Context) error {
 	}()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(1) // add go routine counter
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
@@ -55,7 +55,7 @@ func run(ctx context.Context) error {
 		}
 	}()
 	
-	wg.Wait()
+	wg.Wait() // wait for go routines to finish
 	return nil
 }
 

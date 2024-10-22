@@ -16,59 +16,7 @@ import (
 	"github.com/magicalsoup/reelgo-backend/src/gcs"
 )
 
-type Sender struct {
-	Id string `json:"id"`
-}
 
-type Recipient struct {
-	Id string `json:"id"`
-}
-
-type Payload struct {
-	Url           string `json:"url"`
-	Title         string `json:"title"`
-	Sticker_id    int64  `json:"sticker_id"`
-	Reel_video_id string `json:"reel_video_id"`
-}
-
-type Attachment struct {
-	Type    string  `json:"type"`
-	Payload Payload `json:"payload"`
-}
-
-type QuickReply struct {
-	Payload string `json:"paylod"`
-}
-
-type ReplyTo struct {
-	Mid string `json:"mid"`
-}
-
-type Message struct {
-	Mid         string       `json:"mid"`
-	Text        string       `json:"text"`
-	Quick_reply QuickReply   `json:"quick_reply"`
-	Reply_to    ReplyTo      `json:"reply_to"`
-	Attachments []Attachment `json:"attachments"`
-}
-
-type MessageMetaData struct {
-	Sender    Sender    `json:"sender"`
-	Recipient Recipient `json:"recipient"`
-	Timestamp int64     `json:"timestamp"`
-	Message   Message   `json:"message"`
-}
-
-type MessageWebhookObject struct {
-	Object string         `json:"object"`
-	Entry  []MessageEntry `json:"entry"`
-}
-
-type MessageEntry struct {
-	Id        string            `json:"id"`
-	Time      int64             `json:"time"`
-	Messaging []MessageMetaData `json:"messaging"`
-}
 
 
 func verifyReqSignature(r *http.Request, buffer []byte) error {
@@ -114,7 +62,7 @@ func webhookHandler() http.HandlerFunc {
 			var reqBody MessageWebhookObject
 
 			if err := json.NewDecoder(bytes.NewReader(body)).Decode(&reqBody); err != nil {
-				http.Error(w, "could not parse json\n"+err.Error(), http.StatusBadRequest)
+				http.Error(w, "could not parse json\n" + err.Error(), http.StatusBadRequest)
 				return
 			}
 
@@ -123,7 +71,7 @@ func webhookHandler() http.HandlerFunc {
 			fmt.Println(reel_url)
 
 			if reel_url == "" { // emptry url
-				http.Error(w, "could not get a reel_url from message"+err.Error(), http.StatusBadRequest)
+				http.Error(w, "could not get a reel_url from message" + err.Error(), http.StatusBadRequest)
 				return
 			}
 
@@ -135,7 +83,7 @@ func webhookHandler() http.HandlerFunc {
 			fmt.Println(attraction.Name + " " + attraction.Location)
 			w.WriteHeader(http.StatusOK)
 
-			// add the attraction to the database
+			// TODO add the attraction to the database
 
 		} else if r.Method == http.MethodGet {
 			mode := r.URL.Query().Get("hub.mode")
