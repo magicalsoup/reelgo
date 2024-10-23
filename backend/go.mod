@@ -9,6 +9,8 @@ require (
 	google.golang.org/api v0.197.0
 )
 
+require github.com/lib/pq v1.10.9 // indirect
+
 require (
 	cloud.google.com/go v0.115.1 // indirect
 	cloud.google.com/go/ai v0.8.0 // indirect

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -14,11 +15,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/magicalsoup/reelgo/src/instagram"
+
+	_ "github.com/lib/pq"
 )
 
-func NewServer() http.Handler {
+func NewServer(db *sql.DB) http.Handler {
 	r := mux.NewRouter()
-	instagram.AddRoutes(r)
+	instagram.AddRoutes(r, db)
 	var handler http.Handler = r
 	return handler
 }
@@ -32,7 +35,15 @@ func run(ctx context.Context) error {
 		return errors.New("error loading .env file")
 	}
 
-	server := NewServer()
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	
+	if err != nil {
+		fmt.Println("unable to open database")
+		return err
+	}
+
+	server := NewServer(db)
+
 	httpServer := &http.Server{
 		Addr: net.JoinHostPort(os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT")),
 		Handler: server,

@@ -1,9 +1,11 @@
 package instagram
 
 import (
+	"database/sql"
+
 	"github.com/gorilla/mux"
 )
 
-func AddRoutes(r *mux.Router) {
-	r.HandleFunc("/webhooks", webhookHandler())
+func AddRoutes(r *mux.Router, db* sql.DB) {
+	r.HandleFunc("/webhooks", webhookHandler(db))
 }

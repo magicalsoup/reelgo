@@ -12,11 +12,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"database/sql"
 
 	"github.com/magicalsoup/reelgo/src/gcs"
 )
-
-
 
 
 func verifyReqSignature(r *http.Request, buffer []byte) error {
@@ -39,7 +38,7 @@ func verifyReqSignature(r *http.Request, buffer []byte) error {
 	return nil
 }
 
-func webhookHandler() http.HandlerFunc {
+func webhookHandler(db *sql.DB) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			fmt.Println("recieved body")
