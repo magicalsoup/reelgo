@@ -15,6 +15,7 @@ import (
 	"database/sql"
 
 	"github.com/magicalsoup/reelgo/src/gcs"
+	"github.com/magicalsoup/reelgo/src/auth"
 )
 
 
@@ -63,6 +64,39 @@ func webhookHandler(db *sql.DB) http.HandlerFunc {
 			if err := json.NewDecoder(bytes.NewReader(body)).Decode(&reqBody); err != nil {
 				http.Error(w, "could not parse json\n" + err.Error(), http.StatusBadRequest)
 				return
+			}
+
+			text := reqBody.Entry[0].Messaging[0].Message.Text
+			ig_id := reqBody.Entry[0].Messaging[0].Sender.Id
+			recipient_id := reqBody.Entry[0].Messaging[0].Recipient.Id
+
+			if recipient_id != os.Getenv("APP_IGSID") {
+				// this means that the message was not sent to this app
+				return
+			}
+
+			fmt.Println("their id", ig_id)
+			fmt.Println(text)
+
+			if text == "!verify" { // user wants to verify their account
+			
+				authcode := auth.Generate6DigitAuthCode()
+				// fmt.Println("generated 6 digit auth code ", authcode)
+				// TODO use db to save authcode in verification codes table
+
+				// should sa
+
+				err := sendMessageToUser(ig_id, authcode)
+
+				if err != nil {
+					http.Error(w, "could not send user message\n" + err.Error(), http.StatusBadRequest)
+					return 
+				}
+				return
+			}
+
+			if (len(reqBody.Entry[0].Messaging[0].Message.Attachments) == 0) {
+				return // no attachments
 			}
 
 			reel_url := reqBody.Entry[0].Messaging[0].Message.Attachments[0].Payload.Url

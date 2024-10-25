@@ -9,7 +9,10 @@ require (
 	google.golang.org/api v0.197.0
 )
 
-require github.com/lib/pq v1.10.9 // indirect
+require (
+	github.com/go-jet/jet/v2 v2.11.1 // indirect
+	github.com/lib/pq v1.10.9 // indirect
+)
 
 require (
 	cloud.google.com/go v0.115.1 // indirect
