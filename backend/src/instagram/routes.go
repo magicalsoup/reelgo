@@ -7,5 +7,6 @@ import (
 )
 
 func AddRoutes(r *mux.Router, db* sql.DB) {
-	r.HandleFunc("/webhooks", webhookHandler(db))
+	r.HandleFunc("/webhooks", verifyWebHookHandler()).Methods("GET")
+	r.HandleFunc("/webhooks", messageWebhookHandler(db)).Methods("POST")
 }

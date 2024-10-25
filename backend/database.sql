@@ -9,7 +9,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE verification_codes (
-    huid text,
+    huid TEXT,
     instagram_id TEXT,
     code TEXT,
     PRIMARY KEY (huid)

@@ -6,12 +6,16 @@ require (
 	cloud.google.com/go/videointelligence v1.12.0
 	github.com/google/generative-ai-go v0.18.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	google.golang.org/api v0.197.0
 )
 
 require (
-	github.com/go-jet/jet/v2 v2.11.1 // indirect
-	github.com/lib/pq v1.10.9 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-jet/jet/v2 v2.11.1
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/testify v1.9.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
