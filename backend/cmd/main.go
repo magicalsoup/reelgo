@@ -35,7 +35,7 @@ func run(ctx context.Context) error {
 		return errors.New("error loading .env file")
 	}
 
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL_NEON"))
 	
 	if err != nil {
 		fmt.Println("unable to open database")

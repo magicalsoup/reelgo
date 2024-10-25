@@ -5,6 +5,8 @@ import (
 	"math/big"
 )
 
+
+
 func Generate6DigitAuthCode() (string) {
 	var code string = ""
 	for i := 0; i < 6; i++ {

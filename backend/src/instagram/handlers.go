@@ -78,9 +78,13 @@ func webhookHandler(db *sql.DB) http.HandlerFunc {
 			fmt.Println("their id", ig_id)
 			fmt.Println(text)
 
-			if text == "!verify" { // user wants to verify their account
-			
+
+			if text[0:7] == "!verify" { // user wants to verify their account
+				// should also ask user to send their hashed id with the verify command
+
+				// hashed_id := text[7:] // hashed id is the rest of the code
 				authcode := auth.Generate6DigitAuthCode()
+
 				// fmt.Println("generated 6 digit auth code ", authcode)
 				// TODO use db to save authcode in verification codes table
 
@@ -115,7 +119,6 @@ func webhookHandler(db *sql.DB) http.HandlerFunc {
 
 			fmt.Println(attraction.Name + " " + attraction.Location)
 			w.WriteHeader(http.StatusOK)
-
 			// TODO add the attraction to the database
 
 		} else if r.Method == http.MethodGet {

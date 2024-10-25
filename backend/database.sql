@@ -1,3 +1,4 @@
+
 CREATE TABLE users (
     uid INTEGER PRIMARY KEY,
     name TEXT,
@@ -8,10 +9,10 @@ CREATE TABLE users (
 );
 
 CREATE TABLE verification_codes (
-    uid INTEGER,
+    huid text,
+    instagram_id TEXT,
     code TEXT,
-    PRIMARY KEY (uid, code),
-    FOREIGN KEY (uid) REFERENCES "users" (uid)
+    PRIMARY KEY (huid)
 );
 
 CREATE TABLE trips (
