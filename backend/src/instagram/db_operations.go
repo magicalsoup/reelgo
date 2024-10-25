@@ -9,9 +9,9 @@ import (
 )
 
 
-func addVerificationCodeToDB(db *sql.DB, code string, hashed_id string, ig_id string) error {
+func addVerificationCodeToDB(db *sql.DB, code string, huid string, ig_id string) error {
 	verification_code := model.VerificationCodes{
-		Huid: hashed_id,
+		Huid: huid,
 		InstagramID: &ig_id,
 		Code: &code,
 	}
@@ -29,4 +29,18 @@ func addVerificationCodeToDB(db *sql.DB, code string, hashed_id string, ig_id st
 	}
 
 	return nil
+}
+
+func getVerificationStatus(db *sql.DB, ig_id string) (bool, error) {
+	stmt := Users.SELECT(Users.Verified).WHERE(Users.InstagramID.EQ(String(ig_id)))
+
+	verified := false
+
+	err := stmt.Query(db, verified)
+
+	if err != nil {
+		return verified, err
+	}
+
+	return verified, nil
 }

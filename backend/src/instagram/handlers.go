@@ -59,12 +59,15 @@ func verifyWebHookHandler() http.HandlerFunc {
 func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("recieved body")
+		
 		body, err := io.ReadAll(r.Body)
+		defer r.Body.Close()
 
 		if err != nil {
-			fmt.Println(err)
+			http.Error(w, "could not read request body\n" + err.Error(), http.StatusBadRequest)
+			return
 		}
-		defer r.Body.Close()
+		
 
 		verify_payload := verifyReqSignature(r, body)
 
@@ -93,18 +96,25 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		verified, err := getVerificationStatus(db, ig_id)
+
+		if err != nil {
+			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		text_parts := strings.Split(text, ":")
 
 		// expects ![VERIFY_COMMAND]:[hashed_user_id]
-		// user wants to verify their account
-		if (len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND")) { 
+		// user wants to verify their account (and not already verified)
+		if len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND") && !verified { 
 		
 			hashed_id := text_parts[1] // hashed id is the rest of the code
 			authcode := auth.Generate6DigitCode()
 
 			dberr := addVerificationCodeToDB(db, hashed_id, authcode, ig_id)
 			if dberr != nil {
-				http.Error(w, "could not add verification code to db\n"+dberr.Error(), http.StatusBadRequest)
+				http.Error(w, "could not add verification code to db\n" + dberr.Error(), http.StatusBadRequest)
 				return
 			}
 
@@ -117,6 +127,10 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		if !verified { // not verified/linked user, can't save reels
+			return 
+		}
+
 		if len(reqBody.Entry[0].Messaging[0].Message.Attachments) == 0 {
 			return // no attachments
 		}
@@ -124,7 +138,7 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 		reel_url := reqBody.Entry[0].Messaging[0].Message.Attachments[0].Payload.Url
 
 		if reel_url == "" { // emptry url
-			http.Error(w, "could not get a reel_url from message"+err.Error(), http.StatusBadRequest)
+			http.Error(w, "could not get a reel_url from message", http.StatusBadRequest)
 			return
 		}
 
