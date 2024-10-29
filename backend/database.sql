@@ -1,6 +1,6 @@
 
 CREATE TABLE users (
-    uid INTEGER PRIMARY KEY,
+    uid SERIAL PRIMARY KEY,
     name TEXT,
     email TEXT UNIQUE,
     hashed_password TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE verification_codes (
 );
 
 CREATE TABLE tokens (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     bearer_token TEXT UNIQUE,
     expiry_time BIGINT,
     uid INTEGER,
