@@ -50,6 +50,8 @@ func signUpUser(db *sql.DB, email string, password string) (*model.Users, error)
 
 func createSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 	sessionToken := uuid.New().String()
+
+	// 8 days from now
 	expiry_time := time.Now().Unix() + 60 * 60 * 24 * 8
 
 	stmt := Tokens.INSERT(Tokens.BearerToken, Tokens.ExpiryTime, Tokens.UID).VALUES(sessionToken, expiry_time, uid)
@@ -62,4 +64,38 @@ func createSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 		return nil, err
 	}
 	return token, nil
+}
+
+func getTokenByUserId(db *sql.DB, uid int32) (*model.Tokens, error) {
+	stmt := Tokens.SELECT(Tokens.AllColumns).WHERE(Tokens.UID.EQ(Int32(uid)))
+
+	token := &model.Tokens{}
+	err := stmt.Query(db, token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}
+
+func refreshSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
+	
+	oldToken, err := getTokenByUserId(db, uid)
+
+	if err != nil {
+		return nil, err
+	}
+
+	expiry_time := time.Now().Unix() + 60 * 60 * 24 * 8
+	stmt := Tokens.UPDATE(Tokens.ExpiryTime).SET(expiry_time).WHERE(Tokens.ID.EQ(Int32(oldToken.ID))).RETURNING(Tokens.AllColumns)
+
+	newToken := &model.Tokens{}
+
+	err = stmt.Query(db, newToken)
+
+	if err != nil {
+		return nil, err
+	}
+	return newToken, nil
 }

@@ -44,8 +44,17 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 
+		token, err := refreshSessionToken(db, user.UID)
+
+		if err != nil {
+			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		// otherwise write 200 
 		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(token)
 	}
 }
 
