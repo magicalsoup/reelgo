@@ -27,38 +27,44 @@ const formSchema = z.object({
 
 const crypto = require("crypto")
 
-export default  function Login({ cookieStore } : { cookieStore: ReadonlyRequestCookies }) {
+export default  function SignUp({ cookieStore } : { cookieStore: ReadonlyRequestCookies }) {
     const [errorMessage, setErrorMessage] = useState<String>("")
 
     async function loginUser (values: z.infer<typeof formSchema>) {
         const hashedPassword = crypto.createHash("sha256").update(values.password).digest("hex")
-        const api_url = `${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/login`
+        const api_url = `${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/signup`
+       // console.log("api_url: ", api_url)
+
         const res = await fetch(api_url, {
             method: "POST",
-            mode: "no-cors",
-            headers: {
-                "Server-Auth-Token": process.env.SERVER_AUTH_TOKEN ?? "No Token",
-                "Content-Type": "application/json"
-            },
             body: JSON.stringify({
                 email: values.email,
                 hashedPassword: hashedPassword
             })
         })
 
-        const userData = await res.json() // contains the user data
 
-        // get a sessionToken and store it in the cookie store
-        if (res.status == 200) {
-            
-            cookieStore.set(USER_BEARER_TOKEN_COOKIE_NAME, userData.bearerToken, {expires: userData.expiryTime});
-            cookieStore.set(USER_ID_COOKIE_NAME, userData.id.toString(), { expires: userData.expiryTime});
-
-            setErrorMessage("")
-            redirect("/dashboard")
-        } else {
-            setErrorMessage("error, cannot sign you in")
+        if (!res.ok) {
+            console.error("cors stupid ", res)
         }
+        
+
+        console.log("res", res);
+        // const userData = await res.json() // contains the user data
+
+        // console.log("[userdata]:", userData)
+
+        // // get a sessionToken and store it in the cookie store
+        // if (res.status == 200) {
+            
+        //     cookieStore.set(USER_BEARER_TOKEN_COOKIE_NAME, userData.bearerToken, {expires: userData.expiryTime});
+        //     cookieStore.set(USER_ID_COOKIE_NAME, userData.id.toString(), { expires: userData.expiryTime});
+
+        //     setErrorMessage("")
+        //     redirect("/dashboard")
+        // } else {
+        //     setErrorMessage("error, cannot sign up")
+        // }
     }
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -72,7 +78,7 @@ export default  function Login({ cookieStore } : { cookieStore: ReadonlyRequestC
     return (
         <Card className="w-[350px]">
             <CardHeader>
-                <CardTitle>Welcome Back!</CardTitle>
+                <CardTitle>Start planning with ReelGo!</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-y-2">
             <Form {...form}>
@@ -107,8 +113,7 @@ export default  function Login({ cookieStore } : { cookieStore: ReadonlyRequestC
                         {errorMessage}
                     </FormDescription>
                     <div className="flex justify-between">
-                        <Button onClick={() => redirect("/signup")} variant="outline">Sign up</Button>
-                        <Button type="submit">Sign in!</Button>
+                        <Button type="submit" variant="outline">Sign up</Button>
                     </div>
                 </form>
             </Form>
