@@ -3,6 +3,7 @@ package users
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -38,6 +39,8 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+
+
 		authenticated := loginUser(user, data.Hashed_password)
 
 		if !authenticated { // user supplied wrong password
@@ -60,6 +63,7 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 
 func signUpHandler(db *sql.DB) http.HandlerFunc {
 	return func (w http.ResponseWriter, r* http.Request) {
+
 		data := &UserDataPayload{}
 		err := json.NewDecoder(r.Body).Decode(data)
 
@@ -84,8 +88,16 @@ func signUpHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
+		json_resp, err := json.Marshal(token)
+
+		if err != nil {
+			http.Error(w, "could not serialize body\n" + err.Error(), http.StatusInternalServerError)
+			return	
+		}
+		//w.WriteHeader(http.StatusCreated)
+		fmt.Println(w.Header())
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(token)
+		w.Write(json_resp)
+		//w.Write([]byte("what is happening"))
 	}
 }

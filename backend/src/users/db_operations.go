@@ -35,7 +35,7 @@ func loginUser(user *model.Users, password string) bool {
 
 func signUpUser(db *sql.DB, email string, password string) (*model.Users, error) {
 	salt, hashed_secret := generateHashedPassword(password)
-	stmt := Users.INSERT(Users.Email, Users.HashedPassword, Users.Salt, Users.Verified).VALUES(email, hashed_secret, salt)
+	stmt := Users.INSERT(Users.Email, Users.HashedPassword, Users.Salt, Users.Verified).VALUES(email, hashed_secret, salt, false).RETURNING(Users.AllColumns)
 
 	user := &model.Users{} 
 
@@ -54,7 +54,7 @@ func createSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 	// 8 days from now
 	expiry_time := time.Now().Unix() + 60 * 60 * 24 * 8
 
-	stmt := Tokens.INSERT(Tokens.BearerToken, Tokens.ExpiryTime, Tokens.UID).VALUES(sessionToken, expiry_time, uid)
+	stmt := Tokens.INSERT(Tokens.BearerToken, Tokens.ExpiryTime, Tokens.UID).VALUES(sessionToken, expiry_time, uid).RETURNING(Tokens.AllColumns)
 	
 	token := &model.Tokens{}
 

@@ -20,9 +20,25 @@ import (
 
 	_ "github.com/lib/pq"
 )
+// CORS Middleware to handle preflight requests and set CORS headers
+func corsMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+
+        // Handle preflight OPTIONS request
+        if r.Method == http.MethodOptions {
+            w.WriteHeader(http.StatusNoContent) // Return 204 No Content for OPTIONS requests
+            return
+        }
+
+        next.ServeHTTP(w, r) // Pass the request to the next handler
+    })
+}
 
 func NewServer(db *sql.DB) http.Handler {
 	r := mux.NewRouter()
+	r.Use(corsMiddleware)
 	instagram.AddRoutes(r, db)
 	users.AddRoutes(r, db)
 	auth.AddRoutes(r, db)
@@ -52,6 +68,7 @@ func run(ctx context.Context) error {
 		Addr: net.JoinHostPort(os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT")),
 		Handler: server,
 	}
+
 
 	go func() {
 		log.Printf("listening on server %s\n", httpServer.Addr)
