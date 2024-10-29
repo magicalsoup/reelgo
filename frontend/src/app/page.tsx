@@ -1,5 +1,5 @@
-
-export default function Home() {
+// landing
+export default async function Home() {
   return (
     <div className="">
       Welcome To Reel Go!
