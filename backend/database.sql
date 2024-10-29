@@ -2,8 +2,9 @@
 CREATE TABLE users (
     uid INTEGER PRIMARY KEY,
     name TEXT,
-    email TEXT,
+    email TEXT UNIQUE,
     hashed_password TEXT,
+    salt TEXT,
     instagram_id TEXT,
     verified BOOLEAN
 );
@@ -13,6 +14,14 @@ CREATE TABLE verification_codes (
     instagram_id TEXT,
     code TEXT,
     PRIMARY KEY (huid)
+);
+
+CREATE TABLE tokens (
+    id INTEGER PRIMARY KEY,
+    bearer_token TEXT UNIQUE,
+    expiry_time BIGINT,
+    uid INTEGER,
+    FOREIGN KEY(uid) REFERENCES "users" (uid)
 );
 
 CREATE TABLE trips (

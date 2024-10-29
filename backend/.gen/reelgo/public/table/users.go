@@ -21,6 +21,7 @@ type usersTable struct {
 	Name           postgres.ColumnString
 	Email          postgres.ColumnString
 	HashedPassword postgres.ColumnString
+	Salt           postgres.ColumnString
 	InstagramID    postgres.ColumnString
 	Verified       postgres.ColumnBool
 
@@ -67,10 +68,11 @@ func newUsersTableImpl(schemaName, tableName, alias string) usersTable {
 		NameColumn           = postgres.StringColumn("name")
 		EmailColumn          = postgres.StringColumn("email")
 		HashedPasswordColumn = postgres.StringColumn("hashed_password")
+		SaltColumn           = postgres.StringColumn("salt")
 		InstagramIDColumn    = postgres.StringColumn("instagram_id")
 		VerifiedColumn       = postgres.BoolColumn("verified")
-		allColumns           = postgres.ColumnList{UIDColumn, NameColumn, EmailColumn, HashedPasswordColumn, InstagramIDColumn, VerifiedColumn}
-		mutableColumns       = postgres.ColumnList{NameColumn, EmailColumn, HashedPasswordColumn, InstagramIDColumn, VerifiedColumn}
+		allColumns           = postgres.ColumnList{UIDColumn, NameColumn, EmailColumn, HashedPasswordColumn, SaltColumn, InstagramIDColumn, VerifiedColumn}
+		mutableColumns       = postgres.ColumnList{NameColumn, EmailColumn, HashedPasswordColumn, SaltColumn, InstagramIDColumn, VerifiedColumn}
 	)
 
 	return usersTable{
@@ -81,6 +83,7 @@ func newUsersTableImpl(schemaName, tableName, alias string) usersTable {
 		Name:           NameColumn,
 		Email:          EmailColumn,
 		HashedPassword: HashedPasswordColumn,
+		Salt:           SaltColumn,
 		InstagramID:    InstagramIDColumn,
 		Verified:       VerifiedColumn,
 

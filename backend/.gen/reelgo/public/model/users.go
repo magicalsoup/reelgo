@@ -12,6 +12,7 @@ type Users struct {
 	Name           *string
 	Email          *string
 	HashedPassword *string
+	Salt           *string
 	InstagramID    *string
 	Verified       *bool
 }

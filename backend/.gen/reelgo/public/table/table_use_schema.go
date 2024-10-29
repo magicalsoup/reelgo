@@ -11,6 +11,7 @@ package table
 // this method only once at the beginning of the program.
 func UseSchema(schema string) {
 	Attractions = Attractions.FromSchema(schema)
+	Tokens = Tokens.FromSchema(schema)
 	Trips = Trips.FromSchema(schema)
 	Users = Users.FromSchema(schema)
 	VerificationCodes = VerificationCodes.FromSchema(schema)

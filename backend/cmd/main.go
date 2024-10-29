@@ -14,7 +14,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/magicalsoup/reelgo/src/auth"
 	"github.com/magicalsoup/reelgo/src/instagram"
+	"github.com/magicalsoup/reelgo/src/users"
 
 	_ "github.com/lib/pq"
 )
@@ -22,6 +24,8 @@ import (
 func NewServer(db *sql.DB) http.Handler {
 	r := mux.NewRouter()
 	instagram.AddRoutes(r, db)
+	users.AddRoutes(r, db)
+	auth.AddRoutes(r, db)
 	var handler http.Handler = r
 	return handler
 }
