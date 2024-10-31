@@ -3,16 +3,16 @@ package users
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
+
+	"github.com/magicalsoup/reelgo/.gen/reelgo/public/model"
 )
 
 // sign up
 // user supplies id and pw
 // pw gets hashed and send to server
 // pw gets salted with a unique salt, then hashed again and stored in db
-// returns a bearer token
-
 
 func loginHandler(db *sql.DB) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
@@ -39,8 +39,6 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-
-
 		authenticated := loginUser(user, data.Hashed_password)
 
 		if !authenticated { // user supplied wrong password
@@ -59,6 +57,29 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(token)
 	}
+}
+
+func setAuthCookies(w *http.ResponseWriter, token *model.Tokens) {
+	id_cookie := http.Cookie{
+		Name: "user-id", 
+		Value: strconv.Itoa(int(*token.UID)), 
+		Path: "/",
+		MaxAge: int(*token.ExpiryTime),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	bearer_cookie := http.Cookie{
+		Name: "user-bearer-token",
+		Value: *token.BearerToken,
+		Path: "/",
+		MaxAge: int(*token.ExpiryTime),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(*w, &id_cookie)
+	http.SetCookie(*w, &bearer_cookie)
 }
 
 func signUpHandler(db *sql.DB) http.HandlerFunc {
@@ -83,21 +104,13 @@ func signUpHandler(db *sql.DB) http.HandlerFunc {
 
 		token, err := createSessionToken(db, user.UID)
 
+		
 		if err != nil {
 			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		json_resp, err := json.Marshal(token)
-
-		if err != nil {
-			http.Error(w, "could not serialize body\n" + err.Error(), http.StatusInternalServerError)
-			return	
-		}
-		//w.WriteHeader(http.StatusCreated)
-		fmt.Println(w.Header())
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(json_resp)
-		//w.Write([]byte("what is happening"))
+		setAuthCookies(&w, token);
+		w.WriteHeader(http.StatusCreated) // write this after setting cookies always
 	}
 }
