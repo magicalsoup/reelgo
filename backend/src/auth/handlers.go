@@ -1,10 +1,7 @@
 package auth
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 )
@@ -30,17 +27,13 @@ func codeCheckHandler(db *sql.DB) http.HandlerFunc {
 			return 
 		}
 
-		h := hmac.New(sha256.New, []byte(string(data.Uid)))
-		huid := hex.EncodeToString(h.Sum(nil))
-
-		verification_code, err := getVerificationCode(db, huid)
-
-		if err != nil || *verification_code.Code != data.Code{
+		verification_code, err := getVerificationCode(db, data.Uid)
+		if err != nil || verification_code.Code != data.Code {
 			http.Error(w, "something went wrong \n" + err.Error(), http.StatusNotFound)
 			return 
 		}
 
-		err = storeIGIDToUser(db, data.Uid, *verification_code.InstagramID)
+		err = storeIGIDToUser(db, data.Uid, verification_code.InstagramID)
 
 		if err != nil {
 			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)

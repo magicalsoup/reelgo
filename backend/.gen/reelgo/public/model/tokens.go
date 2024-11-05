@@ -9,7 +9,7 @@ package model
 
 type Tokens struct {
 	ID          int32 `sql:"primary_key"`
-	BearerToken *string
-	ExpiryTime  *int64
-	UID         *int32
+	BearerToken string
+	ExpiryTime  int64
+	UID         int32
 }

@@ -1,6 +1,7 @@
 package users
 
 type UserAuthPayload struct {
+	Name string `json:"name"`
 	Email string `json:"email"`
 	Hashed_password string `json:"hashedPassword"`
 }

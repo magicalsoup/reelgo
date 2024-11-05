@@ -11,6 +11,6 @@ type Attractions struct {
 	UID                int32 `sql:"primary_key"`
 	Tid                int32 `sql:"primary_key"`
 	Aid                int32 `sql:"primary_key"`
-	AttractionName     *string
-	AttractionLocation *string
+	AttractionName     string
+	AttractionLocation string
 }

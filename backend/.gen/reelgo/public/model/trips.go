@@ -10,5 +10,5 @@ package model
 type Trips struct {
 	UID      int32 `sql:"primary_key"`
 	Tid      int32 `sql:"primary_key"`
-	TripName *string
+	TripName string
 }

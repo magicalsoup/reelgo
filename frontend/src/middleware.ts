@@ -39,8 +39,16 @@ export const config = {
     ],
 }
 
-export async function middleware(request: NextRequest) {
+function isHomeRequest(request: NextRequest) {
+  return request.nextUrl.pathname === "/"
+}
 
+function isAuthRequest(request: NextRequest) {
+  return request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/signup")
+}
+
+export async function middleware(request: NextRequest) {
+  
     const cookieStore = (await cookies())
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/user`, {
@@ -51,29 +59,27 @@ export async function middleware(request: NextRequest) {
         }
     })   
 
-
-    if (!res.ok) {
-        if (!request.nextUrl.pathname.startsWith("/login")) {
-            return NextResponse.redirect(new URL("/login", request.url))
-        }
-        return NextResponse.next()
-    }
-
     const user: User = await res.json().catch((err) => {
-      console.error(err);
+      console.error("[middleware fetching user]", err);
       return null
     })
 
-    if (!user) {
-        if (!request.nextUrl.pathname.startsWith("/login")) {
-            return NextResponse.redirect(new URL("/login", request.url))
-        }
-        return NextResponse.next()
-    } 
+    // console.log("[user from req] ", user)
+    // console.log('request url pathname', request.nextUrl.pathname)
 
-    if (request.nextUrl.pathname.endsWith("/") || request.nextUrl.pathname.startsWith("/signup") 
-        || request.nextUrl.pathname.startsWith("/login")) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))    
+    const loggedIn = res.ok && user
+
+    if (!loggedIn && !isAuthRequest(request) && !isHomeRequest(request)) {
+      return NextResponse.redirect(new URL("/login", request.url))
     }
 
+
+    if (loggedIn && (isAuthRequest(request) || isHomeRequest(request))) {
+      return NextResponse.redirect(new URL("/dashboard", request.url)) 
+    }
+
+    if (loggedIn && request.nextUrl.pathname.startsWith("/dashboard") && !user.verified) {
+      return NextResponse.redirect(new URL(`/link?uid=${user.uid}`, request.url))
+    }
+    return NextResponse.next()
 }

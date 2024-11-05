@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/magicalsoup/reelgo/.gen/reelgo/public/model"
 )
@@ -13,26 +14,27 @@ const BEARER_TOKEN_COOKIE_NAME = "user-bearer-token"
 const USER_ID_COOKIE_NAME = "user-id"
 
 func setAuthCookies(w http.ResponseWriter, token *model.Tokens) {
-	// id_cookie := http.Cookie{
-	// 	Name:     USER_ID_COOKIE_NAME,
-	// 	Value:    strconv.Itoa(int(*token.UID)),
-	// 	Path:     "/",
-	// 	MaxAge:   int(*token.ExpiryTime),
-	// 	HttpOnly: true,
-	// 	SameSite: http.SameSiteLaxMode,
-	// }
+	id_cookie := http.Cookie{
+		Name:     USER_ID_COOKIE_NAME,
+		Value:    strconv.Itoa(int(token.UID)),
+		Path:     "/",
+		MaxAge:   int(token.ExpiryTime),
+		HttpOnly: true,
+		Secure: true,
+		SameSite: http.SameSiteLaxMode,
+	}
 
 	bearer_cookie := http.Cookie{
 		Name:     BEARER_TOKEN_COOKIE_NAME,
-		Value:    *token.BearerToken,
+		Value:    token.BearerToken,
 		Path:     "/",
-		MaxAge:   int(*token.ExpiryTime),
+		MaxAge:   int(token.ExpiryTime),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	// http.SetCookie(*w, &id_cookie)
+	http.SetCookie(w, &id_cookie)
 	http.SetCookie(w, &bearer_cookie)
 }
 
@@ -74,9 +76,9 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		hashed_secret := getHashedPassword(data.Hashed_password, *user.Salt)
+		hashed_secret := getHashedPassword(data.Hashed_password, user.Salt)
 
-		if hashed_secret != *user.HashedPassword { // user supplied wrong password
+		if hashed_secret != user.HashedPassword { // user supplied wrong password
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 
@@ -106,7 +108,7 @@ func signUpHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		user, err := createUser(db, data.Email, data.Hashed_password)
+		user, err := createUser(db, data.Name, data.Email, data.Hashed_password)
 
 		if err != nil {
 			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
@@ -139,7 +141,7 @@ func logOutHandler(db *sql.DB) http.HandlerFunc {
 		err = invalidateSessionToken(db, bearer_token)
 
 		if err != nil {
-			http.Error(w, "somethign went wrong", http.StatusInternalServerError)
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -164,10 +166,6 @@ func getUserHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// kind of a hacky solution, will refine later
-		name := ""
-		if user.Name != nil {
-			name = *user.Name
-		}
 
 		ig_id := ""
 		if user.InstagramID != nil {
@@ -176,10 +174,10 @@ func getUserHandler(db *sql.DB) http.HandlerFunc {
 
 		data := UserDataPayload{
 			UID:          user.UID,
-			Name:         name,
-			Email:        *user.Email,
+			Name:         user.Name,
+			Email:        user.Email,
 			Instagram_id: ig_id,
-			Verified:     *user.Verified,
+			Verified:     user.Verified,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

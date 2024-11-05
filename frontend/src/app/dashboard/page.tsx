@@ -1,6 +1,11 @@
-import { cookies } from "next/headers"
+"use client"
+import LogOutButton from "@/components/dashboard/LogOutButton";
 
-export default async function Home() {
-    return <div>
-    </div>
+export default function Home() {
+    return (
+        <div>
+            <h1>Your dashboard</h1>
+            <LogOutButton/>
+        </div>
+    )
 }

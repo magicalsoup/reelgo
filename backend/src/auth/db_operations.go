@@ -9,9 +9,9 @@ import (
 )
 
 
-func getVerificationCode(db *sql.DB, huid string) (*model.VerificationCodes, error) {
+func getVerificationCode(db *sql.DB, uid int32) (*model.VerificationCodes, error) {
 
-	stmt := VerificationCodes.SELECT(VerificationCodes.AllColumns).WHERE(VerificationCodes.Huid.EQ(String(huid))).LIMIT(1)
+	stmt := VerificationCodes.SELECT(VerificationCodes.AllColumns).WHERE(VerificationCodes.UID.EQ(Int32(uid))).LIMIT(1)
 
 	verification_code := &model.VerificationCodes{}
 	
@@ -29,11 +29,11 @@ func storeIGIDToUser(db *sql.DB, uid int32, ig_id string) error {
 	// we avoid verified users
 	stmt := Users.UPDATE().SET(
 		Users.InstagramID.SET(String(ig_id)),
-	).WHERE(Users.UID.EQ(Int32(uid)).AND(
-		Users.Verified.NOT_EQ(Bool(false))),
-	)
+		Users.Verified.SET(Bool(true)),
+	).WHERE(Users.UID.EQ(Int32(uid))).RETURNING(Users.AllColumns)
 
-	_, err := stmt.Exec(db)
+	var user = &model.Users{}
+	err := stmt.Query(db, user)
 
 	if err != nil {
 		return err

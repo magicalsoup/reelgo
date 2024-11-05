@@ -4,19 +4,20 @@ import (
 	"database/sql"
 
 	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/go-jet/jet/v2/qrm"
 	"github.com/magicalsoup/reelgo/.gen/reelgo/public/model"
 	. "github.com/magicalsoup/reelgo/.gen/reelgo/public/table"
 )
 
 
-func addVerificationCodeToDB(db *sql.DB, code string, huid string, ig_id string) error {
+func addVerificationCodeToDB(db *sql.DB, code string, uid int32, ig_id string) error {
 	verification_code := model.VerificationCodes{
-		Huid: huid,
-		InstagramID: &ig_id,
-		Code: &code,
+		UID: uid,
+		InstagramID: ig_id,
+		Code: code,
 	}
 
-	stmt := VerificationCodes.INSERT(VerificationCodes.AllColumns).MODEL(verification_code).ON_CONFLICT(VerificationCodes.Huid).DO_UPDATE(
+	stmt := VerificationCodes.INSERT(VerificationCodes.AllColumns).MODEL(verification_code).ON_CONFLICT(VerificationCodes.UID).DO_UPDATE(
 		SET(
 			VerificationCodes.Code.SET(String(code)),
 		),
@@ -32,15 +33,19 @@ func addVerificationCodeToDB(db *sql.DB, code string, huid string, ig_id string)
 }
 
 func getVerificationStatus(db *sql.DB, ig_id string) (bool, error) {
-	stmt := Users.SELECT(Users.Verified).WHERE(Users.InstagramID.EQ(String(ig_id)))
+	stmt := Users.SELECT(Users.AllColumns).WHERE(Users.InstagramID.EQ(String(ig_id)))
 
-	verified := false
+	var user = &model.Users{}
 
-	err := stmt.Query(db, verified)
+	err := stmt.Query(db, user)
 
-	if err != nil {
-		return verified, err
+	if err == qrm.ErrNoRows {
+		return false, nil
 	}
 
-	return verified, nil
+	if err != nil {
+		return false, err
+	}
+
+	return user.Verified, nil
 }

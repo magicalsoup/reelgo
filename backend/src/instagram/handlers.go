@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/magicalsoup/reelgo/src/auth"
@@ -99,28 +100,42 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 		verified, err := getVerificationStatus(db, ig_id)
 
 		if err != nil {
+			fmt.Println(err.Error())
 			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		text_parts := strings.Split(text, ":")
 
+		fmt.Println(text_parts[0])
+
 		// expects ![VERIFY_COMMAND]:[hashed_user_id]
 		// user wants to verify their account (and not already verified)
 		if len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND") && !verified { 
-		
-			hashed_id := text_parts[1] // hashed id is the rest of the code
+			
+			fmt.Println("generating verification code ", text_parts[0])
+			uidStr := text_parts[1] // hashed id is the rest of the code
 			authcode := auth.Generate6DigitCode()
 
-			dberr := addVerificationCodeToDB(db, hashed_id, authcode, ig_id)
+			uid, converr := strconv.Atoi(uidStr)
+
+			if converr != nil {
+				fmt.Println("could not parse message\n" + converr.Error())
+				return
+			}
+
+			dberr := addVerificationCodeToDB(db, authcode, int32(uid), ig_id)
 			if dberr != nil {
+				fmt.Println("could not add verification code to db\n" + dberr.Error())
 				http.Error(w, "could not add verification code to db\n" + dberr.Error(), http.StatusBadRequest)
 				return
 			}
 
+			fmt.Println("sending message to user")
 			err := sendMessageToUser(ig_id, authcode)
 
 			if err != nil {
+				fmt.Println("could not send user message\n"+err.Error())
 				http.Error(w, "could not send user message\n"+err.Error(), http.StatusBadRequest)
 				return
 			}

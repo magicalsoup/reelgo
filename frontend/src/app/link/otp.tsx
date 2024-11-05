@@ -4,26 +4,23 @@ import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/comp
 import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 
-export default function OTP({uid} : {uid: string | undefined}) {
+export default function OTP({uid} : {uid: number | undefined}) {
     const [verificationCode, setVerificationCode] = useState("")
     const [message, setMessage] = useState("");
 
     useEffect(() => {
         async function checkCode(code: string) {
-            const api_url = `${process.env.REEL_GO_SERVER_API_ENDPOINT}/auth`
+            const api_url = `${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/auth`
             const req = await fetch(api_url, {
-                method: "GET",
-                headers: {
-                    "Server-Auth-Token": process.env.SERVER_AUTH_TOKEN ?? "",
-                    "Content-Type": "application/json"
-                },
+                method: "POST",
+                credentials: "include",
                 body: JSON.stringify({
                     uid: uid ?? "",
                     code: code,                  
                 })
             })
 
-            if (req.status == 200) {
+            if (req.ok) {
                 setMessage("You're all set! redirecting you to dashboard...");
                 redirect("/dashboard");
             } else {

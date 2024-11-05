@@ -28,9 +28,9 @@ func getUser(db *sql.DB, email string) (*model.Users, error) {
 	return &users[0], nil
 }
 
-func createUser(db *sql.DB, email string, password string) (*model.Users, error) {
+func createUser(db *sql.DB, name string, email string, password string) (*model.Users, error) {
 	salt, hashed_secret := generateHashedPassword(password)
-	stmt := Users.INSERT(Users.Email, Users.HashedPassword, Users.Salt, Users.Verified).VALUES(email, hashed_secret, salt, false).RETURNING(Users.AllColumns)
+	stmt := Users.INSERT(Users.Name, Users.Email, Users.HashedPassword, Users.Salt, Users.Verified).VALUES(name, email, hashed_secret, salt, false).RETURNING(Users.AllColumns)
 
 	user := &model.Users{}
 
@@ -119,11 +119,11 @@ func getUserByToken(db *sql.DB, bearer_token string) (*model.Users, error) {
 		return nil, err
 	}
 
-	if *token.ExpiryTime < time.Now().Unix() {
+	if token.ExpiryTime < time.Now().Unix() {
 		return nil, errors.New("token expired")
 	}
 
-	get_user_stmt := Users.SELECT(Users.AllColumns).WHERE(Users.UID.EQ(Int32(*token.UID)))
+	get_user_stmt := Users.SELECT(Users.AllColumns).WHERE(Users.UID.EQ(Int32(token.UID)))
 
 	user := &model.Users{}
 

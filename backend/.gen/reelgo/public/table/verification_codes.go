@@ -17,7 +17,8 @@ type verificationCodesTable struct {
 	postgres.Table
 
 	// Columns
-	Huid        postgres.ColumnString
+	Vid         postgres.ColumnInteger
+	UID         postgres.ColumnInteger
 	InstagramID postgres.ColumnString
 	Code        postgres.ColumnString
 
@@ -60,18 +61,20 @@ func newVerificationCodesTable(schemaName, tableName, alias string) *Verificatio
 
 func newVerificationCodesTableImpl(schemaName, tableName, alias string) verificationCodesTable {
 	var (
-		HuidColumn        = postgres.StringColumn("huid")
+		VidColumn         = postgres.IntegerColumn("vid")
+		UIDColumn         = postgres.IntegerColumn("uid")
 		InstagramIDColumn = postgres.StringColumn("instagram_id")
 		CodeColumn        = postgres.StringColumn("code")
-		allColumns        = postgres.ColumnList{HuidColumn, InstagramIDColumn, CodeColumn}
-		mutableColumns    = postgres.ColumnList{InstagramIDColumn, CodeColumn}
+		allColumns        = postgres.ColumnList{VidColumn, UIDColumn, InstagramIDColumn, CodeColumn}
+		mutableColumns    = postgres.ColumnList{UIDColumn, InstagramIDColumn, CodeColumn}
 	)
 
 	return verificationCodesTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		Huid:        HuidColumn,
+		Vid:         VidColumn,
+		UID:         UIDColumn,
 		InstagramID: InstagramIDColumn,
 		Code:        CodeColumn,
 

@@ -9,10 +9,10 @@ package model
 
 type Users struct {
 	UID            int32 `sql:"primary_key"`
-	Name           *string
-	Email          *string
-	HashedPassword *string
-	Salt           *string
+	Name           string
+	Email          string
+	HashedPassword string
+	Salt           string
 	InstagramID    *string
-	Verified       *bool
+	Verified       bool
 }

@@ -10,20 +10,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import sha256Hash from "@/lib/hash";
 
 const formSchema = z.object({
     email: z.string(),
     password: z.string()
 })
-  
-const crypto = require("crypto")
 
 export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState<String>("")
     
 
     async function loginUser (values: z.infer<typeof formSchema>) {
-        const hashedPassword = crypto.createHash("sha256").update(values.password).digest("hex")
+        const hashedPassword = sha256Hash(values.password)
         const api_url = `${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/login`
 
         const res = await fetch(api_url, {
@@ -36,8 +35,7 @@ export default function Home() {
         })
 
         if (!res.ok) {
-            setErrorMessage("error logging you in")
-            console.error("cors stupid ", res)
+            setErrorMessage("there was an error logging you in")
             return
         }
 
@@ -94,7 +92,7 @@ export default function Home() {
                             {errorMessage}
                         </FormDescription>
                         <div className="flex justify-between">
-                            <Button variant="outline">Sign up</Button>
+                            <Button variant="outline" type="button" onClick={() => redirect("/signup")}>Sign up</Button>
                             <Button type="submit">Log in</Button>
                         </div>
                     </form>

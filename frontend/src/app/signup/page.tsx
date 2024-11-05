@@ -9,54 +9,51 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import sha256Hash from "@/lib/hash";
 
 const formSchema = z.object({
+    name: z.string(),
     email: z.string(),
     password: z.string()
 })
-  
-const crypto = require("crypto")
 
 export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState<String>("")
 
-    async function loginUser (values: z.infer<typeof formSchema>) {
-        const hashedPassword = crypto.createHash("sha256").update(values.password).digest("hex")
+    async function signupUser (values: z.infer<typeof formSchema>) {
+        const hashedPassword = sha256Hash(values.password)
         const api_url = `${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/signup`
-
-        console.log("api_url: ", api_url)
     
         const res = await fetch(api_url, {
             method: "POST",
             credentials: 'include',
             body: JSON.stringify({
+                name: values.name,
                 email: values.email,
                 hashedPassword: hashedPassword
             })
         })
-    
-        console.log("[res set cookie headers]", res.headers.getSetCookie())
-    
+
+
         if (!res.ok) {
-            console.error("cors stupid ", res)
-            return false
-        }
-        
-        if (res.status == 201) { // status created
-            setErrorMessage("")
-        } else {
             setErrorMessage("error signing you up")
+            return
         }
+
+        const user = await res.json()
+        
+        setErrorMessage("redirecting you to setup...")
+        redirect(`/link?uid=${user.uid}`)
     }
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            name: "",
             email: "",
             password: "",
         },
     })
-
 
     return (
         <div className="flex justify-center items-center h-screen">
@@ -66,7 +63,20 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-y-2">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(loginUser)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(signupUser)} className="space-y-4">
+                        <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="name" {...field}/>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                         <FormField
                         control={form.control}
                         name="email"

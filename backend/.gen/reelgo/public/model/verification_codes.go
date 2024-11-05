@@ -8,7 +8,8 @@
 package model
 
 type VerificationCodes struct {
-	Huid        string `sql:"primary_key"`
-	InstagramID *string
-	Code        *string
+	Vid         int32 `sql:"primary_key"`
+	UID         int32
+	InstagramID string
+	Code        string
 }
