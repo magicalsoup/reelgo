@@ -1,5 +1,7 @@
 export type User = {
-    id: number;
-    bearerToken: string; // auth token
-    expiryTime: number; // ns when user auth expires
+    uid: number;
+    name: string;
+    email: string;
+    instagram_id: string;
+    verified: boolean;
 }
