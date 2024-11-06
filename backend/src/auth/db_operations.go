@@ -38,5 +38,6 @@ func storeIGIDToUser(db *sql.DB, uid int32, ig_id string) error {
 	if err != nil {
 		return err
 	}
+	
 	return nil
 }

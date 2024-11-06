@@ -10,7 +10,7 @@ package model
 type Attractions struct {
 	UID                int32 `sql:"primary_key"`
 	Tid                int32 `sql:"primary_key"`
-	Aid                int32 `sql:"primary_key"`
+	Aid                int64 `sql:"primary_key"`
 	AttractionName     string
 	AttractionLocation string
 }

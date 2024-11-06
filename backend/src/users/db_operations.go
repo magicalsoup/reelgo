@@ -5,13 +5,15 @@ import (
 	"errors"
 	"time"
 
+	"github.com/go-jet/jet/v2/qrm"
+
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/magicalsoup/reelgo/.gen/reelgo/public/model"
 	. "github.com/magicalsoup/reelgo/.gen/reelgo/public/table"
 )
 
-func getUser(db *sql.DB, email string) (*model.Users, error) {
+func GetUserByEmail(db *sql.DB, email string) (*model.Users, error) {
 	stmt := Users.SELECT(Users.AllColumns).WHERE(Users.Email.EQ(String(email)))
 	var users []model.Users
 
@@ -28,7 +30,7 @@ func getUser(db *sql.DB, email string) (*model.Users, error) {
 	return &users[0], nil
 }
 
-func createUser(db *sql.DB, name string, email string, password string) (*model.Users, error) {
+func CreateUser(db *sql.DB, name string, email string, password string) (*model.Users, error) {
 	salt, hashed_secret := generateHashedPassword(password)
 	stmt := Users.INSERT(Users.Name, Users.Email, Users.HashedPassword, Users.Salt, Users.Verified).VALUES(name, email, hashed_secret, salt, false).RETURNING(Users.AllColumns)
 
@@ -43,7 +45,7 @@ func createUser(db *sql.DB, name string, email string, password string) (*model.
 	return user, nil
 }
 
-func createSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
+func CreateSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 	sessionToken := uuid.New().String()
 
 	// 8 days from now
@@ -61,7 +63,7 @@ func createSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 	return token, nil
 }
 
-func getTokenByUserId(db *sql.DB, uid int32) (*model.Tokens, error) {
+func GetTokenByUserId(db *sql.DB, uid int32) (*model.Tokens, error) {
 	stmt := Tokens.SELECT(Tokens.AllColumns).WHERE(Tokens.UID.EQ(Int32(uid)))
 
 	token := &model.Tokens{}
@@ -74,9 +76,9 @@ func getTokenByUserId(db *sql.DB, uid int32) (*model.Tokens, error) {
 	return token, nil
 }
 
-func refreshSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
+func RefreshSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 
-	oldToken, err := getTokenByUserId(db, uid)
+	oldToken, err := GetTokenByUserId(db, uid)
 
 	if err != nil {
 		return nil, err
@@ -95,7 +97,7 @@ func refreshSessionToken(db *sql.DB, uid int32) (*model.Tokens, error) {
 	return newToken, nil
 }
 
-func invalidateSessionToken(db *sql.DB, bearer_token string) error {
+func InvalidateSessionToken(db *sql.DB, bearer_token string) error {
 	stmt := Tokens.UPDATE(Tokens.ExpiryTime).SET(0).WHERE(Tokens.BearerToken.EQ(String(bearer_token)))
 
 	_, err := stmt.Exec(db)
@@ -107,7 +109,7 @@ func invalidateSessionToken(db *sql.DB, bearer_token string) error {
 	return err
 }
 
-func getUserByToken(db *sql.DB, bearer_token string) (*model.Users, error) {
+func GetUserByToken(db *sql.DB, bearer_token string) (*model.Users, error) {
 	get_token_stmt := Tokens.SELECT(Tokens.AllColumns).WHERE(Tokens.BearerToken.EQ(String(bearer_token)))
 
 	token := &model.Tokens{}
@@ -128,6 +130,24 @@ func getUserByToken(db *sql.DB, bearer_token string) (*model.Users, error) {
 	user := &model.Users{}
 
 	err = get_user_stmt.Query(db, user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func GetUserByInstagramID(db *sql.DB, ig_id string) (*model.Users, error) {
+	stmt := Users.SELECT(Users.AllColumns).WHERE(Users.InstagramID.EQ(String(ig_id)))
+
+	var user = &model.Users{}
+
+	err := stmt.Query(db, user)
+
+	if err == qrm.ErrNoRows {
+		return nil, nil
+	}
 
 	if err != nil {
 		return nil, err

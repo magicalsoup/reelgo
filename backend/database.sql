@@ -5,7 +5,7 @@ CREATE TABLE users (
     email TEXT UNIQUE NOT NULL,
     hashed_password TEXT NOT NULL,
     salt TEXT NOT NULL,
-    instagram_id TEXT,
+    instagram_id TEXT UNIQUE,
     verified BOOLEAN NOT NULL
 );
 
@@ -26,17 +26,17 @@ CREATE TABLE tokens (
 );
 
 CREATE TABLE trips (
-    uid INTEGER,
-    tid INTEGER,
+    uid INTEGER NOT NULL,
+    tid BIGSERIAL,
     trip_name TEXT NOT NULL,
     PRIMARY KEY(uid, tid),
     FOREIGN KEY(uid) REFERENCES "users" (uid)
 );
 
 Create Table attractions (
-    uid INTEGER,
-    tid INTEGER,
-    aid INTEGER,
+    uid INTEGER NOT NULL,
+    tid INTEGER NOT NULL,
+    aid BIGSERIAL,
     attraction_name TEXT NOT NULL,
     attraction_location TEXT NOT NULL,
     PRIMARY KEY(uid, tid, aid),

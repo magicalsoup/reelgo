@@ -169,3 +169,38 @@ func DownloadVideoFile(url string) ([]byte, error) {
 
 	return bytes, nil
 }
+
+func GenerateTripName(attraction Attraction) (string, error) {
+	ctx := context.Background()
+
+	client, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GEMINI_API_KEY")))
+
+	trip_name := ""
+	
+	if err != nil {
+		return trip_name, err
+	}
+
+	defer client.Close()
+
+	model := client.GenerativeModel("gemini-1.5-flash")
+	prompt := "can you give me just the name of the country or city based on the following location: " + attraction.Location
+	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+	if err != nil {
+		return trip_name, err
+	}
+
+	for _, cand := range resp.Candidates {
+		fmt.Println(cand.Content.Parts[0].(genai.Text))
+	}
+
+	result, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
+
+	if !ok {
+		return trip_name, errors.New("response returned was not text")
+	}
+
+	trip_name = string(result)
+
+	return trip_name, nil
+}

@@ -20,7 +20,7 @@ func setAuthCookies(w http.ResponseWriter, token *model.Tokens) {
 		Path:     "/",
 		MaxAge:   int(token.ExpiryTime),
 		HttpOnly: true,
-		Secure: true,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
@@ -59,14 +59,14 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 		defer r.Body.Close()
 
 		if err != nil {
-			http.Error(w, "could not parse request body into json\n" + err.Error(), http.StatusBadRequest)
+			http.Error(w, "could not parse request body into json\n"+err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		user, err := getUser(db, data.Email)
+		user, err := GetUserByEmail(db, data.Email)
 
 		if err != nil {
-			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
+			http.Error(w, "something went wrong\n"+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -82,7 +82,7 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 
-		token, err := refreshSessionToken(db, user.UID)
+		token, err := RefreshSessionToken(db, user.UID)
 
 		if err != nil {
 			http.Error(w, "something went wrong\n"+err.Error(), http.StatusInternalServerError)
@@ -104,21 +104,21 @@ func signUpHandler(db *sql.DB) http.HandlerFunc {
 		defer r.Body.Close()
 
 		if err != nil {
-			http.Error(w, "could not parse request body into json\n" + err.Error(), http.StatusBadRequest)
+			http.Error(w, "could not parse request body into json\n"+err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		user, err := createUser(db, data.Name, data.Email, data.Hashed_password)
+		user, err := CreateUser(db, data.Name, data.Email, data.Hashed_password)
 
 		if err != nil {
-			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
+			http.Error(w, "something went wrong\n"+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		token, err := createSessionToken(db, user.UID)
+		token, err := CreateSessionToken(db, user.UID)
 
 		if err != nil {
-			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
+			http.Error(w, "something went wrong\n"+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -138,7 +138,7 @@ func logOutHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		err = invalidateSessionToken(db, bearer_token)
+		err = InvalidateSessionToken(db, bearer_token)
 
 		if err != nil {
 			http.Error(w, "something went wrong", http.StatusInternalServerError)
@@ -158,7 +158,7 @@ func getUserHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		user, err := getUserByToken(db, bearer_token)
+		user, err := GetUserByToken(db, bearer_token)
 
 		if err != nil {
 			http.Error(w, "user not found or invalid token", http.StatusUnauthorized)

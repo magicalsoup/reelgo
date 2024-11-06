@@ -17,6 +17,8 @@ import (
 
 	"github.com/magicalsoup/reelgo/src/auth"
 	"github.com/magicalsoup/reelgo/src/gcs"
+	"github.com/magicalsoup/reelgo/src/trips"
+	"github.com/magicalsoup/reelgo/src/users"
 )
 
 func verifyReqSignature(r *http.Request, buffer []byte) error {
@@ -59,17 +61,15 @@ func verifyWebHookHandler() http.HandlerFunc {
 
 func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("recieved body")
 		
 		body, err := io.ReadAll(r.Body)
 		defer r.Body.Close()
 
 		if err != nil {
-			http.Error(w, "could not read request body\n" + err.Error(), http.StatusBadRequest)
+			http.Error(w, "could not read request body\n", http.StatusBadRequest)
 			return
 		}
 		
-
 		verify_payload := verifyReqSignature(r, body)
 
 		if verify_payload != nil {
@@ -80,7 +80,7 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 		var reqBody MessageWebhookObject
 
 		if err := json.NewDecoder(bytes.NewReader(body)).Decode(&reqBody); err != nil {
-			http.Error(w, "could not parse json\n"+err.Error(), http.StatusBadRequest)
+			http.Error(w, "could not parse json\n", http.StatusBadRequest)
 			return
 		}
 
@@ -97,23 +97,19 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		verified, err := getVerificationStatus(db, ig_id)
-
+		user, err := users.GetUserByInstagramID(db, ig_id)
+		
 		if err != nil {
-			fmt.Println(err.Error())
 			http.Error(w, "something went wrong\n" + err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		text_parts := strings.Split(text, ":")
 
-		fmt.Println(text_parts[0])
-
-		// expects ![VERIFY_COMMAND]:[hashed_user_id]
+		// expects ![VERIFY_COMMAND]:[user_id]
 		// user wants to verify their account (and not already verified)
-		if len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND") && !verified { 
+		if len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND") && !user.Verified { 
 			
-			fmt.Println("generating verification code ", text_parts[0])
 			uidStr := text_parts[1] // hashed id is the rest of the code
 			authcode := auth.Generate6DigitCode()
 
@@ -131,7 +127,6 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			fmt.Println("sending message to user")
 			err := sendMessageToUser(ig_id, authcode)
 
 			if err != nil {
@@ -142,7 +137,7 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		if !verified { // not verified/linked user, can't save reels
+		if !user.Verified { // not verified/linked user, can't save reels
 			return 
 		}
 
@@ -160,10 +155,17 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 		attraction, err := gcs.TransformVideoData(reel_url)
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
 
-		fmt.Println(attraction.Name + " " + attraction.Location)
+		err = trips.AddAttraction(db, attraction, user)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+	
 		w.WriteHeader(http.StatusOK)
-		// TODO add the attraction to the database
+		
 	}
 }
