@@ -200,7 +200,8 @@ func GenerateTripName(attraction Attraction) (string, error) {
 		return trip_name, errors.New("response returned was not text")
 	}
 
-	trip_name = string(result)
+	// trim spaces and new line
+	trip_name = strings.Trim(string(result), " \n")
 
 	return trip_name, nil
 }

@@ -34,8 +34,10 @@ func getTripsHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
+
+
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(trips)
 	}
 }

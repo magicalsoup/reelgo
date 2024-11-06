@@ -104,11 +104,12 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		verified := user != nil && user.Verified
 		text_parts := strings.Split(text, ":")
 
 		// expects ![VERIFY_COMMAND]:[user_id]
 		// user wants to verify their account (and not already verified)
-		if len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND") && !user.Verified { 
+		if len(text_parts) == 2 && strings.ToLower(text_parts[0]) == os.Getenv("VERIFY_COMMAND") && !verified { 
 			
 			uidStr := text_parts[1] // hashed id is the rest of the code
 			authcode := auth.Generate6DigitCode()
@@ -137,7 +138,7 @@ func messageWebhookHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		if !user.Verified { // not verified/linked user, can't save reels
+		if !verified { // not verified/linked user, can't save reels
 			return 
 		}
 
