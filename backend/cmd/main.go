@@ -16,10 +16,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/magicalsoup/reelgo/src/auth"
 	"github.com/magicalsoup/reelgo/src/instagram"
+	"github.com/magicalsoup/reelgo/src/trips"
 	"github.com/magicalsoup/reelgo/src/users"
 
 	_ "github.com/lib/pq"
 )
+
 // CORS Middleware to handle preflight requests and set CORS headers
 func corsMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +45,7 @@ func NewServer(db *sql.DB) http.Handler {
 	instagram.AddRoutes(r, db)
 	users.AddRoutes(r, db)
 	auth.AddRoutes(r, db)
+	trips.AddRoutes(r, db)
 	var handler http.Handler = r
 	return handler
 }

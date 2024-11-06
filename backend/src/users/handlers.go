@@ -3,49 +3,10 @@ package users
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
+
 	"net/http"
-	"strconv"
-
-	"github.com/magicalsoup/reelgo/.gen/reelgo/public/model"
+	"github.com/magicalsoup/reelgo/src/util"
 )
-
-const BEARER_TOKEN_COOKIE_NAME = "user-bearer-token"
-const USER_ID_COOKIE_NAME = "user-id"
-
-func setAuthCookies(w http.ResponseWriter, token *model.Tokens) {
-	id_cookie := http.Cookie{
-		Name:     USER_ID_COOKIE_NAME,
-		Value:    strconv.Itoa(int(token.UID)),
-		Path:     "/",
-		MaxAge:   int(token.ExpiryTime),
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	bearer_cookie := http.Cookie{
-		Name:     BEARER_TOKEN_COOKIE_NAME,
-		Value:    token.BearerToken,
-		Path:     "/",
-		MaxAge:   int(token.ExpiryTime),
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, &id_cookie)
-	http.SetCookie(w, &bearer_cookie)
-}
-
-func getBearerToken(cookies []*http.Cookie) (string, error) {
-	for i := 0; i < len(cookies); i++ {
-		if cookies[i].Name == BEARER_TOKEN_COOKIE_NAME {
-			return cookies[i].Value, nil
-		}
-	}
-	return "", errors.New(BEARER_TOKEN_COOKIE_NAME + " cookie not found ")
-}
 
 // sign up
 // user supplies id and pw
@@ -90,7 +51,7 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// otherwise write 200
-		setAuthCookies(w, token)
+		util.SetAuthCookies(w, token)
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -122,7 +83,7 @@ func signUpHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		setAuthCookies(w, token)
+		util.SetAuthCookies(w, token)
 		w.WriteHeader(http.StatusCreated) // write this after setting cookies always
 	}
 }
@@ -131,7 +92,7 @@ func logOutHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookies := r.Cookies()
 
-		bearer_token, err := getBearerToken(cookies)
+		bearer_token, err := util.GetBearerToken(cookies)
 
 		if err != nil {
 			http.Error(w, "user not signed in, error: "+err.Error(), http.StatusUnauthorized)
@@ -151,7 +112,7 @@ func getUserHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookies := r.Cookies()
 
-		bearer_token, err := getBearerToken(cookies)
+		bearer_token, err := util.GetBearerToken(cookies)
 
 		if err != nil {
 			http.Error(w, "user not signed in error: "+err.Error(), http.StatusUnauthorized)

@@ -42,3 +42,25 @@ func AddAttraction(db *sql.DB, attraction gcs.Attraction, user *model.Users) (er
 	_, err = insert_attraction_stmt.Exec(db)
 	return nil
 }
+
+func GetTrips(db *sql.DB, user *model.Users) ([]TripAttractions, error) {
+	stmt := SELECT(	Trips.Tid, 
+					Trips.TripName, 
+					Attractions.Aid, 
+					Attractions.AttractionName, 
+					Attractions.AttractionLocation,
+			).FROM(
+				Trips.INNER_JOIN(Attractions, Attractions.UID.EQ(Trips.UID).AND(Attractions.Tid.EQ(Trips.Tid))),
+			).WHERE(Trips.UID.EQ(Int32(user.UID))).
+			ORDER_BY(Trips.Tid, Attractions.Aid)
+	
+	trips := []TripAttractions{}
+
+	err := stmt.Query(db, &trips)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return trips, nil
+}

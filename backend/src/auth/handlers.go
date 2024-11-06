@@ -12,7 +12,7 @@ import (
 // user recieves and types 6 digit code in frontend
 // frontend recieves and sends back the 6 digit code and the user id (gotten from when the response when user signs up/logs in)
 
-// the function below checks if the 6 digit code and hashed id matches in the database
+// the function below checks if the 6 digit code and id matches in the database
 // if so, stores the igsid to the user to link, and returns a statusOK
 func codeCheckHandler(db *sql.DB) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
