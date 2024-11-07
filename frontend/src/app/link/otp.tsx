@@ -35,6 +35,7 @@ export default function OTP({uid} : {uid: number | undefined}) {
     }, [verificationCode])
     return (
         <>
+            <p className="h-8">{message}</p>
             <InputOTP maxLength={6}
                 value={verificationCode}
                 onChange={(value) => setVerificationCode(value)}>
@@ -50,7 +51,6 @@ export default function OTP({uid} : {uid: number | undefined}) {
                     <InputOTPSlot index={5} />
                 </InputOTPGroup>
             </InputOTP>
-            {message}
         </>
     )
 }

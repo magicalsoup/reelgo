@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import LogOutButton from "../dashboard/LogOutButton"
 
 export default function Navbar() {
     const pathName = usePathname()
@@ -9,7 +10,7 @@ export default function Navbar() {
 
     return (
         <div className="sticky absolute top-0 outline outline-1 outline-gray-400 flex justify-center">
-            <div className="flex justify-between w-full max-w-[1280px] h-20 items-center px-8 py-4">
+            <div className="flex justify-between w-full max-w-screen-xl h-20 items-center px-8 py-4">
                 <strong className="logo font-bold text-4xl">reelgo</strong>
                 {show && 
                     <div className="flex gap-x-2">
@@ -17,6 +18,7 @@ export default function Navbar() {
                         <Button>Log in</Button>
                     </div>
                 }
+                {!show && <LogOutButton/>}
             </div>
         </div>
     )

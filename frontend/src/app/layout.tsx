@@ -19,9 +19,6 @@ const InstagramBold = localFont({
 });
 
 
-
-
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,10 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+  
       <body
         className={`${InstagramSans.variable} ${InstagramBold.variable}`}
       >
-        <Navbar/>
         {children}
       </body>
     </html>
