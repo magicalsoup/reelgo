@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import sha256Hash from "@/lib/hash";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
     name: z.string(),
@@ -19,6 +20,7 @@ const formSchema = z.object({
 
 export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState<String>("")
+    const router = useRouter()
 
     async function signupUser (values: z.infer<typeof formSchema>) {
         const hashedPassword = sha256Hash(values.password)
@@ -43,7 +45,7 @@ export default function Home() {
         const user = await res.json()
         
         setErrorMessage("redirecting you to setup...")
-        redirect(`/link?uid=${user.uid}`)
+        router.push(`/link?uid=${user.uid}`)
     }
 
     const form = useForm<z.infer<typeof formSchema>>({

@@ -1,9 +1,12 @@
 
 import { Button } from "../ui/button";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 
 export default function LogOutButton() {
+
+    const router = useRouter()
+
     async function logoutUser() {
         // const cookieStore = await cookies()
         const api_url = `${process.env.NEXT_PUBLIC_REEL_GO_SERVER_API_ENDPOINT}/logout`
@@ -15,7 +18,8 @@ export default function LogOutButton() {
             console.error("could not log user out", await res.text())
             return 
         }
-        redirect("/")
+
+        router.push("/")
     }
 
     return (

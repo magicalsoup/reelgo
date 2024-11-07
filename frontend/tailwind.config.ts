@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			sans: ["var(--font-instagram-sans)"],
+			bold: ["var(--font-instagram-bold)"]
+		},
 		keyframes: {
 			"caret-blink": {
 			  "0%,70%,100%": { opacity: "1" },

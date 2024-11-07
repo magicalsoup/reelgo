@@ -1,4 +1,5 @@
 "use client"
+
 import OTP from "./otp";
 import { useSearchParams } from "next/navigation";
 

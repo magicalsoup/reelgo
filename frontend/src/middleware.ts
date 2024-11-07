@@ -57,15 +57,11 @@ export async function middleware(request: NextRequest) {
         headers: {
             Cookie: cookieStore.toString()
         }
-    })   
-
-    const user: User = await res.json().catch((err) => {
-      console.error("[middleware fetching user]", err);
-      return null
     })
 
-    // console.log("[user from req] ", user)
-    // console.log('request url pathname', request.nextUrl.pathname)
+    const user: User = await res?.json().catch((err) => {
+      return null
+    })
 
     const loggedIn = res.ok && user
 

@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
-import { User } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import sha256Hash from "@/lib/hash";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
     email: z.string(),
@@ -19,7 +19,7 @@ const formSchema = z.object({
 
 export default function Home() {
     const [errorMessage, setErrorMessage] = React.useState<String>("")
-    
+    const router = useRouter();
 
     async function loginUser (values: z.infer<typeof formSchema>) {
         const hashedPassword = sha256Hash(values.password)
@@ -40,8 +40,7 @@ export default function Home() {
         }
 
         setErrorMessage("logging you in...");
-        redirect("/dashboard")
-    
+        router.push("/dashboard")    
     }
 
     const form = useForm<z.infer<typeof formSchema>>({
