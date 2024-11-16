@@ -13,6 +13,7 @@ import (
 
 func AddAttraction(db *sql.DB, attraction gcs.Attraction, user *model.Users) (error) {
 	trip_name, err := gcs.GenerateTripName(attraction)
+	
 	if err != nil {
 		return err
 	}
@@ -22,7 +23,6 @@ func AddAttraction(db *sql.DB, attraction gcs.Attraction, user *model.Users) (er
 	trip := &model.Trips{}
 
 	err = get_trip_stmt.Query(db, trip)
-
 
 	// no existing trip, we add it to database
 	if err == qrm.ErrNoRows {
